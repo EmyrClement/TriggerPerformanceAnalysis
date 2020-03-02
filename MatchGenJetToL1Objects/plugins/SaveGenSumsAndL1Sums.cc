@@ -115,7 +115,7 @@ SaveGenSumsAndL1Sums::SaveGenSumsAndL1Sums(const edm::ParameterSet& iConfig)
   }
   
   //Creating a TTree where to save gen-l1t HT, if I have received the HT tag and the gen-jet tag required to compute it
-  if ((this -> _genJetCollectionTag) && (this -> _l1tMHTCollectionTag))
+  if ((this -> _genJetCollectionTag) && (this -> _l1tHTCollectionTag))
   {
     this -> _genHTL1THTTree = fs -> make<TTree>("genHTL1THTTree", "TTree with generator-level / L1T HT information");
     this -> _genHTL1THTTree -> Branch("genHT", &(this -> _genHT), "genHT/F");
@@ -305,11 +305,10 @@ double SaveGenSumsAndL1Sums::_computeMHT(const std::vector<reco::GenJet>& jetVec
   for (const auto & jet: jetVector)
   {
     // checking if above threshold
-    lTotalJetPx += (jet.pt() >= this -> _htPtThreshold) ? jet.px()
-    lTotalJetPy += (jet.pt() >= this -> _htPtThreshold) ? jet.py()
-
-    double lMHT = sqrt(lTotalJetPx * lTotalJetPx + lTotalJetPy * lTotalJetPy);
+    lTotalJetPx += (jet.pt() >= this -> _htPtThreshold) ? jet.px() : 0;
+    lTotalJetPy += (jet.pt() >= this -> _htPtThreshold) ? jet.py() : 0;
   }
+  double lMHT = sqrt(lTotalJetPx * lTotalJetPx + lTotalJetPy * lTotalJetPy);
 
   return lMHT;
 }
