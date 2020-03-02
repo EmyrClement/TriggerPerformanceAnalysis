@@ -79,14 +79,19 @@ class SaveGenSumsAndL1Sums : public edm::one::EDAnalyzer<edm::one::SharedResourc
     edm::EDGetTokenT< std::vector< reco::GenJet > > *_genJetCollectionTag;
     //tag of the trigger-level ht
     edm::EDGetTokenT< BXVector<l1t::EtSum> > *_l1tHTCollectionTag;
+    //tag of the trigger-level mht
+    edm::EDGetTokenT< BXVector<l1t::EtSum> > *_l1tMHTCollectionTag;
     
     //TTree holding gen-l1t MET pairs
     TTree * _genMETL1TMETTree;
     //TTree holding gen-l1t HT pairs
     TTree * _genHTL1THTTree;
+    //TTree holding gen-l1t MHT pairs
+    TTree * _genMHTL1HTTree;
+    
 
     //memory area where to store gen and l1t sums before saving them into the tree
-    float _genMET, _l1tMET, _genHT, _l1tHT;
+    float _genMET, _l1tMET, _genHT, _l1tHT, _genMHT, _l1tMHT;
     
     double _htPtThreshold;
 
@@ -109,13 +114,22 @@ SaveGenSumsAndL1Sums::SaveGenSumsAndL1Sums(const edm::ParameterSet& iConfig)
     this -> _genMETL1TMETTree -> Branch("l1tMET", &(this -> _l1tMET), "l1TMET/F");
   }
   
-  //Creating a TTree where to save gen-l1t HT, if I have received the MHT tag and the gen-jet tag required to compute it
-  if ((this -> _genJetCollectionTag) && (this -> _l1tHTCollectionTag))
+  //Creating a TTree where to save gen-l1t HT, if I have received the HT tag and the gen-jet tag required to compute it
+  if ((this -> _genJetCollectionTag) && (this -> _l1tMHTCollectionTag))
   {
     this -> _genHTL1THTTree = fs -> make<TTree>("genHTL1THTTree", "TTree with generator-level / L1T HT information");
     this -> _genHTL1THTTree -> Branch("genHT", &(this -> _genHT), "genHT/F");
     this -> _genHTL1THTTree -> Branch("l1tHT", &(this -> _l1tHT), "l1tHT/F");
   }
+  //Creating a TTree where to save gen-l1t MHT, if I have received the MHT tag and the gen-jet tag required to compute it
+  if ((this -> _genJetCollectionTag) && (this -> _l1tMHTCollectionTag))
+  {
+    this -> _genMHTL1TMHTTree = fs -> make<TTree>("genMHTL1TMHTTree", "TTree with generator-level / L1T MHT information");
+    this -> _genMHTL1TMHTTree -> Branch("genMHT", &(this -> _genMHT), "genMHT/F");
+    this -> _genMHTL1TMHTTree -> Branch("l1tMHT", &(this -> _l1tHT), "l1tMHT/F");
+  }
+ 
+   
 }
 
 
@@ -165,6 +179,17 @@ void SaveGenSumsAndL1Sums::_getTokens(const edm::ParameterSet& iConfig)
     this -> _l1tHTCollectionTag = NULL;
   }
 
+  try 
+  {
+    this -> _l1tMHTCollectionTag = new edm::EDGetTokenT< BXVector<l1t::EtSum> >(consumes< BXVector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tMHTCollectionTag")));
+  } catch (std::exception const & ex) 
+  {
+    std::cerr << ">>> MHT configuration not found, proceeding without adding MHT into to tree" << std::endl;
+    this -> _l1tMHTCollectionTag = NULL;
+  }
+
+  }
+
   try
   {
     this -> _htPtThreshold = iConfig.getParameter<double>("htPtThreshold");
@@ -183,6 +208,7 @@ void SaveGenSumsAndL1Sums::_freeTokens()
   if (this -> _l1tMETCollectionTag) delete this -> _l1tMETCollectionTag;
   if (this -> _genJetCollectionTag) delete this -> _genJetCollectionTag;
   if (this -> _l1tHTCollectionTag) delete this -> _l1tHTCollectionTag;
+  if (this -> _l1tMHTCollectionTag) delete this -> _l1tMHTCollectionTag;
   return;
 }
 
@@ -237,6 +263,23 @@ SaveGenSumsAndL1Sums::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     this -> _genHTL1THTTree -> Fill();
   }
 
+  //checking if the MHT tokens are initialised
+  if ((this -> _genJetCollectionTag) && (this -> _l1tMHTCollectionTag))
+  {
+    edm::Handle < std::vector< reco::GenJet> > lGenJetCollectionHandle;
+    edm::Handle < BXVector<l1t::EtSum> > lL1TMHTCollectionHandle;
+    iEvent.getByToken(*(this -> _genJetCollectionTag), lGenJetCollectionHandle);
+    iEvent.getByToken(*(this -> _l1tMHTCollectionTag), lL1TMHTCollectionHandle);
+    // l1t MHT data
+    const BXVector<l1t::EtSum> & lL1TMHTCollection = *lL1TMHTCollectionHandle;
+    // storing in l1tMHT memory area
+    for (const l1t::EtSum & lL1TMHT: lL1TMHTCollection) if (lL1TMHT.getType() == l1t::EtSum::EtSumType::kMissingHt) this -> _l1tMHT = lL1TMHT.pt();
+    //computing gen MHT
+    this -> _genMHT = this -> _computeMHT(*lGenJetCollectionHandle);
+    //pushing gen-l1t ht to the tree
+    this -> _genMHTL1TMHTTree -> Fill();
+  }
+
 }
 
 // computes the genHT starting from the gen jet collection
@@ -251,6 +294,24 @@ double SaveGenSumsAndL1Sums::_computeHT(const std::vector<reco::GenJet>& jetVect
   }
 
   return lHT;
+}
+
+// computes the genMHT starting from the gen jet collection
+double SaveGenSumsAndL1Sums::_computeMHT(const std::vector<reco::GenJet>& jetVector) 
+{
+  double lTotalJetPx = 0;
+  double lTotalJetPy = 0;
+  
+  for (const auto & jet: jetVector)
+  {
+    // checking if above threshold
+    lTotalJetPx += (jet.pt() >= this -> _htPtThreshold) ? jet.px()
+    lTotalJetPy += (jet.pt() >= this -> _htPtThreshold) ? jet.py()
+
+    double lMHT = sqrt(lTotalJetPx * lTotalJetPx + lTotalJetPy * lTotalJetPy);
+  }
+
+  return lMHT;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
