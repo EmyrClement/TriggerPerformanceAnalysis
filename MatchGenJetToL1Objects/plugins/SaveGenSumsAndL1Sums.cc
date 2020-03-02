@@ -87,7 +87,7 @@ class SaveGenSumsAndL1Sums : public edm::one::EDAnalyzer<edm::one::SharedResourc
     //TTree holding gen-l1t HT pairs
     TTree * _genHTL1THTTree;
     //TTree holding gen-l1t MHT pairs
-    TTree * _genMHTL1HTTree;
+    TTree * _genMHTL1MHTTree;
     
 
     //memory area where to store gen and l1t sums before saving them into the tree
