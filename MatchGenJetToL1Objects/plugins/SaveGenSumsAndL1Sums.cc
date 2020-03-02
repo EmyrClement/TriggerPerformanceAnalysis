@@ -70,6 +70,7 @@ class SaveGenSumsAndL1Sums : public edm::one::EDAnalyzer<edm::one::SharedResourc
     void _getTokens(const edm::ParameterSet&);
     void _freeTokens();
     double _computeHT(const std::vector<reco::GenJet>& jetVector);
+    double _computeMHT(const std::vector<reco::GenJet> & jetVector);
 
     //tag of the generator-level met
     edm::EDGetTokenT< std::vector< reco::GenMET > > *_genMETCollectionTag;
@@ -87,7 +88,7 @@ class SaveGenSumsAndL1Sums : public edm::one::EDAnalyzer<edm::one::SharedResourc
     //TTree holding gen-l1t HT pairs
     TTree * _genHTL1THTTree;
     //TTree holding gen-l1t MHT pairs
-    TTree * _genMHTL1MHTTree;
+    TTree * _genMHTL1TMHTTree;
     
 
     //memory area where to store gen and l1t sums before saving them into the tree
@@ -188,7 +189,6 @@ void SaveGenSumsAndL1Sums::_getTokens(const edm::ParameterSet& iConfig)
     this -> _l1tMHTCollectionTag = NULL;
   }
 
-  }
 
   try
   {
