@@ -127,7 +127,7 @@ SaveGenSumsAndL1Sums::SaveGenSumsAndL1Sums(const edm::ParameterSet& iConfig)
   {
     this -> _genMHTL1TMHTTree = fs -> make<TTree>("genMHTL1TMHTTree", "TTree with generator-level / L1T MHT information");
     this -> _genMHTL1TMHTTree -> Branch("genMHT", &(this -> _genMHT), "genMHT/F");
-    this -> _genMHTL1TMHTTree -> Branch("l1tMHT", &(this -> _l1tHT), "l1tMHT/F");
+    this -> _genMHTL1TMHTTree -> Branch("l1tMHT", &(this -> _l1tMHT), "l1tMHT/F");
   }
  
    
@@ -276,6 +276,8 @@ SaveGenSumsAndL1Sums::analyze(const edm::Event& iEvent, const edm::EventSetup& i
     for (const l1t::EtSum & lL1TMHT: lL1TMHTCollection) if (lL1TMHT.getType() == l1t::EtSum::EtSumType::kMissingHt) this -> _l1tMHT = lL1TMHT.pt();
     //computing gen MHT
     this -> _genMHT = this -> _computeMHT(*lGenJetCollectionHandle);
+
+    // if((this -> _genMHT > 275)) std::cout << "l1tMHT: " << this -> _l1tMHT << "\tgenMHT: " << this -> _genMHT << std::endl;
     //pushing gen-l1t ht to the tree
     this -> _genMHTL1TMHTTree -> Fill();
   }
