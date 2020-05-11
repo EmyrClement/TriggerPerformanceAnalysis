@@ -173,7 +173,7 @@ emulatorJetTree_CMSSW = emulatorOutputFile.Get("SaveJets/EmulatorJets")
 emulatorMETTree_CMSSW = emulatorOutputFile.Get("SaveSums/genMETL1TMETTree")
 emulatorHTTree_CMSSW = emulatorOutputFile.Get("SaveSums/genHTL1THTTree")
 # UNCOMMENT FOR MHT, this loads the tree containing the MHT from CMSSW
-# emulatorMHTTree_CMSSW = emulatorOutputFile.Get("SaveGenSumsAndL1Sums/genMHTL1TMHTTree")
+emulatorMHTTree_CMSSW = emulatorOutputFile.Get("SaveSums/genMHTL1TMHTTree")
 
 emulatorJetTree_CMSSW.SetBranchAddress("pt", emulator_jetPt)
 emulatorJetTree_CMSSW.SetBranchAddress("eta", emulator_jetEta)
@@ -182,7 +182,7 @@ emulatorJetTree_CMSSW.SetBranchAddress("length", emulator_length)
 emulatorMETTree_CMSSW.SetBranchAddress("l1tMET", emulator_MET)
 emulatorHTTree_CMSSW.SetBranchAddress("l1tHT", emulator_HT)
 # UNCOMMENT FOR MHT, this loads the branch containing the MHT from CMSSW
-# emulatorMHTTree_CMSSW.SetBranchAddress("l1tMHT", emulator_MHT)
+emulatorMHTTree_CMSSW.SetBranchAddress("l1tMHT", emulator_MHT)
 
 #event loop 
 for iEv in range(0, nEvents):
@@ -212,7 +212,7 @@ for iEv in range(0, nEvents):
   emulatorMETTree_CMSSW.GetEntry(iEv)
   emulatorHTTree_CMSSW.GetEntry(iEv)
   # UNCOMMENT FOR MHT, this retrieves the CMSSW MHT for that event
-  # emulatorMHTTree_CMSSW.GetEntry(iEv)
+  emulatorMHTTree_CMSSW.GetEntry(iEv)
 
   # write emulator event
   

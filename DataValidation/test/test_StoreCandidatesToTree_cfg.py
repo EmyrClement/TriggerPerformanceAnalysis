@@ -1,9 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils # ADDED
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 process = cms.Process("MATCH")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
@@ -15,10 +11,6 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50000) )
 process.source = cms.Source("PoolSource",
   # fileNames = cms.untracked.vstring("file:/hdfs/user/sb17498/CMS_Phase_2/jetMETStudies/ComputePhase1AndAK4L1TJetsFromPfCandidates_10_0_4_MTD/ComputeUncalibratedPhase1AndAK4L1TJetsFromPfCandidates_10_0_4_MTD_7x7Jets.root"),
   # fileNames = cms.untracked.vstring("file:myOutputFile.root"),
-<<<<<<< Updated upstream
-  # fileNames = cms.untracked.vstring("file:/hdfs/user/sb17498/CMS_Phase_2/jetMETStudies/TTBar_200_10_4_0_MTD/inputs104X_1.root"),
-=======
->>>>>>> Stashed changes
   fileNames = cms.untracked.vstring("file:/hdfs/user/sb17498/CMS_Phase_2/jetMETStudies/TTBar_200_10_4_0_MTD/TTBar_PU200.root"),
 )
 
