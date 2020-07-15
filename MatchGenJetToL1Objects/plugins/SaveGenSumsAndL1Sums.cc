@@ -75,13 +75,13 @@ class SaveGenSumsAndL1Sums : public edm::one::EDAnalyzer<edm::one::SharedResourc
     //tag of the generator-level met
     edm::EDGetTokenT< std::vector< reco::GenMET > > *_genMETCollectionTag;
     //tag of the trigger-level met
-    edm::EDGetTokenT< BXVector<l1t::EtSum> > *_l1tMETCollectionTag;
+    edm::EDGetTokenT< std::vector<l1t::EtSum> > *_l1tMETCollectionTag;
     //tag of the generator-level jets HT and MHT can be computed from
     edm::EDGetTokenT< std::vector< reco::GenJet > > *_genJetCollectionTag;
     //tag of the trigger-level ht
-    edm::EDGetTokenT< BXVector<l1t::EtSum> > *_l1tHTCollectionTag;
+    edm::EDGetTokenT< std::vector<l1t::EtSum> > *_l1tHTCollectionTag;
     //tag of the trigger-level mht
-    edm::EDGetTokenT< BXVector<l1t::EtSum> > *_l1tMHTCollectionTag;
+    edm::EDGetTokenT< std::vector<l1t::EtSum> > *_l1tMHTCollectionTag;
     
     //TTree holding gen-l1t MET pairs
     TTree * _genMETL1TMETTree;
@@ -155,7 +155,7 @@ void SaveGenSumsAndL1Sums::_getTokens(const edm::ParameterSet& iConfig)
 
   try
   {
-    this -> _l1tMETCollectionTag = new edm::EDGetTokenT< BXVector<l1t::EtSum> >(consumes< BXVector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tMETCollectionTag")));
+    this -> _l1tMETCollectionTag = new edm::EDGetTokenT< std::vector<l1t::EtSum> >(consumes< std::vector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tMETCollectionTag")));
   } catch (std::exception const & ex) 
   {
     std::cerr << ">>> MET configuration not found, proceeding without adding MET info to tree" << std::endl;
@@ -173,7 +173,7 @@ void SaveGenSumsAndL1Sums::_getTokens(const edm::ParameterSet& iConfig)
   
   try
   {
-    this -> _l1tHTCollectionTag = new edm::EDGetTokenT< BXVector<l1t::EtSum> >(consumes< BXVector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tHTCollectionTag")));
+    this -> _l1tHTCollectionTag = new edm::EDGetTokenT< std::vector<l1t::EtSum> >(consumes< std::vector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tHTCollectionTag")));
   } catch (std::exception const & ex) 
   {
     std::cerr << ">>> HT configuration not found, proceeding without adding HT info to tree" << std::endl;
@@ -182,7 +182,7 @@ void SaveGenSumsAndL1Sums::_getTokens(const edm::ParameterSet& iConfig)
 
   try 
   {
-    this -> _l1tMHTCollectionTag = new edm::EDGetTokenT< BXVector<l1t::EtSum> >(consumes< BXVector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tMHTCollectionTag")));
+    this -> _l1tMHTCollectionTag = new edm::EDGetTokenT< std::vector<l1t::EtSum> >(consumes< std::vector<l1t::EtSum> > (iConfig.getParameter< edm::InputTag >("l1tMHTCollectionTag")));
   } catch (std::exception const & ex) 
   {
     std::cerr << ">>> MHT configuration not found, proceeding without adding MHT into to tree" << std::endl;
@@ -232,13 +232,13 @@ SaveGenSumsAndL1Sums::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   {
     //token are initialised, I use them to access the data
     edm::Handle < std::vector< reco::GenMET> > lGenMETCollectionHandle;
-    edm::Handle < BXVector<l1t::EtSum> > lL1TMETCollectionHandle;
+    edm::Handle < std::vector<l1t::EtSum> > lL1TMETCollectionHandle;
     iEvent.getByToken(*(this -> _genMETCollectionTag), lGenMETCollectionHandle);
     iEvent.getByToken(*(this -> _l1tMETCollectionTag), lL1TMETCollectionHandle);
     // retrieving gen MET and saving it to the genMet memory area
     this -> _genMET = lGenMETCollectionHandle -> front().pt();
     // retrieving sums
-    const BXVector<l1t::EtSum> & lL1TMETCollection = *lL1TMETCollectionHandle;
+    const std::vector<l1t::EtSum> & lL1TMETCollection = *lL1TMETCollectionHandle;
     // looking up the sum containing the MET and storing it to the l1tMet memory area
     for (const l1t::EtSum & lL1TMET: lL1TMETCollection) if (lL1TMET.getType() == l1t::EtSum::EtSumType::kMissingEt) this -> _l1tMET = lL1TMET.pt();
     // pushing the gen-l1t MET to the tree
@@ -250,11 +250,11 @@ SaveGenSumsAndL1Sums::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   {
     //tokens are initialised, accessing the data
     edm::Handle < std::vector< reco::GenJet> > lGenJetCollectionHandle;
-    edm::Handle < BXVector<l1t::EtSum> > lL1THTCollectionHandle;
+    edm::Handle < std::vector<l1t::EtSum> > lL1THTCollectionHandle;
     iEvent.getByToken(*(this -> _genJetCollectionTag), lGenJetCollectionHandle);
     iEvent.getByToken(*(this -> _l1tHTCollectionTag), lL1THTCollectionHandle);
     // access l1t HT data 
-    const BXVector<l1t::EtSum> & lL1THTCollection = *lL1THTCollectionHandle;
+    const std::vector<l1t::EtSum> & lL1THTCollection = *lL1THTCollectionHandle;
     // looking up the sum containing the l1tHET and storing it in the l1tMHT memory area
     for (const l1t::EtSum & lL1THT: lL1THTCollection) if (lL1THT.getType() == l1t::EtSum::EtSumType::kTotalHt) this -> _l1tHT = lL1THT.pt();
     // computing gen HT
@@ -267,11 +267,11 @@ SaveGenSumsAndL1Sums::analyze(const edm::Event& iEvent, const edm::EventSetup& i
   if ((this -> _genJetCollectionTag) && (this -> _l1tMHTCollectionTag))
   {
     edm::Handle < std::vector< reco::GenJet> > lGenJetCollectionHandle;
-    edm::Handle < BXVector<l1t::EtSum> > lL1TMHTCollectionHandle;
+    edm::Handle < std::vector<l1t::EtSum> > lL1TMHTCollectionHandle;
     iEvent.getByToken(*(this -> _genJetCollectionTag), lGenJetCollectionHandle);
     iEvent.getByToken(*(this -> _l1tMHTCollectionTag), lL1TMHTCollectionHandle);
     // l1t MHT data
-    const BXVector<l1t::EtSum> & lL1TMHTCollection = *lL1TMHTCollectionHandle;
+    const std::vector<l1t::EtSum> & lL1TMHTCollection = *lL1TMHTCollectionHandle;
     // storing in l1tMHT memory area
     for (const l1t::EtSum & lL1TMHT: lL1TMHTCollection) if (lL1TMHT.getType() == l1t::EtSum::EtSumType::kMissingHt) this -> _l1tMHT = lL1TMHT.pt();
     //computing gen MHT
